@@ -22,7 +22,7 @@ In particular:
 First let's explore the problem and get some gauges on how large and complex it is. This is always a good idea when puzzle solving, especially with computer-science type questions.
 - If every candy was distinct how many possible shufflings would there be?
    ![25! = 15511210043330985984000000](https://render.githubusercontent.com/render/math?math=25%21%20%3D%2015511210043330985984000000) 
-- Alright, but there 5 distict types of candies, and candies are indistinct within their own type. Can we count the shufflings of candies under this consideration? Yes! By dividing out the orderings of candies of the same type.
+- Alright, but there 5 distinct types of candies, and candies are indistinct within their own type. Can we count the shufflings of candies under this consideration? Yes! By dividing out the orderings of candies of the same type.
    ![\frac{25!}{\left ( 5! \right ) ^{5}} = 623360743125120](https://render.githubusercontent.com/render/math?math=%5Cfrac%7B25%21%7D%7B%5Cleft%20%28%205%21%20%5Cright%20%29%20%5E%7B5%7D%7D%20%3D%20623360743125120)
 - Good so far! Now, from here can filter down to the cases in which every kid holds strictly more of a given type of candy? Sadly I don't see how, and searches online haven't given me much.
 
@@ -31,7 +31,7 @@ We've cut things down to problem size of 623360743125120, but a direct counting 
 
 #### Representation
 One last thing we should look at in our initial exploration is, is there an efficient or intuitive way of representing a particular state of the problem?  
-The answer is yes! Since we're assigning distributions of 5 types of candy of 5 copies to 5 kids equally, and there must be a total of 5 candies of each type and a total of 5 candies belonging to each kid, we can create a table showing the distributions of candy types to kids: *each candy mapping to a row, each kid mapping to a colmuns, and then every row and every columns must sum to 5*. Beautiful!
+The answer is yes! Since we're assigning distributions of 5 types of candy of 5 copies to 5 kids equally, and there must be a total of 5 candies of each type and a total of 5 candies belonging to each kid, we can create a table showing the distributions of candy types to kids: *each candy mapping to a row, each kid mapping to a columns, and then every row and every columns must sum to 5*. Beautiful!
 
 |         | kid 1 | kid 2 | kid 3 | kid 4 | kid 5 | sum |
 |:-------:|:-----:|:-----:|:-----:|:-----:|:-----:|:---:|
@@ -68,7 +68,7 @@ We're off to a good start! We can use this to validate future approaches.
 #### Tables For n = 2
 Let's also build the tables for this case:
 
-1. Starting with the emtpy table
+1. Starting with the empty table
    |         | kid 1 | kid 2 | sum |
    |:-------:|:-----:|:-----:|:---:|
    | candy 1 |       |       | =2  |
@@ -97,16 +97,16 @@ Let's also build the tables for this case:
    | candy 2 | 2     | 0     | =2  |
    | sum     | =2    | =2    | =2  |  
    
-   Is is valid, and appears 1 times in the list of shufflings
+   It is valid, and appears 1 times in the list of shufflings
 
 ### Usefulness of the Table
 The fact that these tables can *account for multiple shufflings* would seem to be a clue for reducing the size of our problem. If we only needed to generate these tables, and calculate how many shufflings each one represents, then perhaps we could have an approach that is feasibly computable.  
 Before we get ahead of ourselves, we should see if we can compute how many shufflings each table accounts for. Otherwise they won't be useful.  
 
-So how can we compute this? Well, if every kid is assigned ![n](https://render.githubusercontent.com/render/math?math=n) candies they would have ![n!](https://render.githubusercontent.com/render/math?math=n%21) orderings of those candies if they were all mutually distinct. As each kid's shuffling is independant from eachother this gives ![\left ( n! \right )^n](https://render.githubusercontent.com/render/math?math=%5Cleft%20%28%20n%21%20%5Cright%20%29%5En) for all kids. The candies belonging to a given kid are not necessarily distinct though, some could be the same, some different, how can we take this into account? The answer is to divide out out the possible orderings of each type of candy belonging to a given kid.  
+So how can we compute this? Well, if every kid is assigned ![n](https://render.githubusercontent.com/render/math?math=n) candies they would have ![n!](https://render.githubusercontent.com/render/math?math=n%21) orderings of those candies if they were all mutually distinct. As each kid's shuffling is independent from eachother this gives ![\left ( n! \right )^n](https://render.githubusercontent.com/render/math?math=%5Cleft%20%28%20n%21%20%5Cright%20%29%5En) for all kids. The candies belonging to a given kid are not necessarily distinct though, some could be the same, some different, how can we take this into account? The answer is to divide out the possible orderings of each type of candy belonging to a given kid.  
 So what do we get when we put this all together:
 
-The total shufflings represended by a table is given by ![\left ( n! \right )^n](https://render.githubusercontent.com/render/math?math=%5Cleft%20%28%20n%21%20%5Cright%20%29%5En) divided by the product of the factorial of every element in the table.  
+The total shufflings represented by a table is given by ![\left ( n! \right )^n](https://render.githubusercontent.com/render/math?math=%5Cleft%20%28%20n%21%20%5Cright%20%29%5En) divided by the product of the factorial of every element in the table.  
 This is actually easier to read in the Python code I wrote for this problem:
 ```python
 import numpy as np
@@ -136,8 +136,8 @@ Given our table approach we can actually unlock 2 more optimizations that will s
 #### Optimization 1
 Since we can compute the total number of shufflings easily, we only need to generate **tables that represent valid shufflings** for our counting. Doing a Monte-Carlo simulation (see Extra Notes) by simply shuffling the candies and distributing them to obtain an estimate of our answer, we see that this should cut down our solution time to less than 4% (down by a factor of over 25).
 #### Optimization 2
-For a table to represent a valid shuffling each row must have have 1 value that is strictly greater than all other values within that row: for a given candy 1 kid must possess strictly the most. These maximum values for each row must be in different columns from eachother as well: each kid must have a candy for which they possess the most, we cannot have 1 kid owning the most of 2 types of candy.  
-For our optimization, we can see we **only need to consider the cases in which kid 1 possesses the most of candy 1, kid 2 possess the most of candy 2, etc**. Because all other cases are simply row permutations of these cases, and these permutations are guarunteed to be unique, so we can just multiply our final answer by the number of those permutations, rather than generating them. This is another optimization by a factor of ![5!=25](https://render.githubusercontent.com/render/math?math=25).
+For a table to represent a valid shuffling each row must have 1 value that is strictly greater than all other values within that row: for a given candy 1 kid must possess strictly the most. These maximum values for each row must be in different columns from eachother as well: each kid must have a candy for which they possess the most, we cannot have 1 kid owning the most of 2 types of candy.  
+For our optimization, we can see we **only need to consider the cases in which kid 1 possesses the most of candy 1, kid 2 possess the most of candy 2, etc**. Because all other cases are simply row permutations of these cases, and these permutations are guaranteed to be unique, so we can just multiply our final answer by the number of those permutations, rather than generating them. This is another optimization by a factor of ![5!=25](https://render.githubusercontent.com/render/math?math=25).
 
 #### Putting It All Together
 Will the table counting technique along with the 2 optimizations be enough to have a feasible computation? Hard to say since we can't pin down an exact value on the table representation's factor. If it's on the order of 100, a loose estimate would suggest we should just barely be able to reach the feasible regime.
@@ -146,13 +146,13 @@ The algorithm can be summarized as follows:
 1. Start with a table full of 0s and with 2s down the diagonal (Each kid must have a least 2 of their candy to own strictly the most)
 2. Recursively fill in the table by looking at each kid-candy pair during a function call and considering all valid amounts to fill the cell
 3. The kid with the most of the given candy must be assigned first so that all subsequent calls for assigning that candy can ensure they adhere to the "strictly less than" condition
-4. Once a completed table is reachedi, its table count is returned so that the total sum of the valid tables will be returned by the recursive function
+4. Once a completed table is reached, its table count is returned so that the total sum of the valid tables will be returned by the recursive function
 5. The row permutation from optimization 2 must be multiplied in to the result
 6. Finally the total number of shufflings is computed so that the lowest terms fraction may be returned
 
-This sounds like a lot, and it is, especially with such an abstract descripton of the algorithm. I suggest **looking at the Python code** and **reading the comments** to get a clearer picture.
+This sounds like a lot, and it is, especially with such an abstract description of the algorithm. I suggest **looking at the Python code** and **reading the comments** to get a clearer picture.
 
-But, is this appoach feasibly computable?  
+But, is this approach feasibly computable?  
 Yes! It takes a few minutes for n=5, but is does finish with the **correct answer**:
 **318281087 / 8016470462**
 
@@ -163,7 +163,7 @@ This has been a fantastic puzzle to solve, it really made me dive deep into the 
 
 ### Extra Notes and Incorrect Approaches
 - I tried searching for the sequence on the Online Encyclopedia of Integer Sequences, [OEIS](https://oeis.org/), but sadly didn't find anything.
-- I wrote a Monte-Carlo simulation to obtain a decimal estimate of the answer. I did this by simply simulting the shuffling, and counting the ones that were considered valid. This was great for debugging, making sure I was on the right track, and ensuring my combinatorial methods weren't double counting, or undercounting.
+- I wrote a Monte-Carlo simulation to obtain a decimal estimate of the answer. I did this by simply simulating the shuffling, and counting the ones that were considered valid. This was great for debugging, making sure I was on the right track, and ensuring my combinatorial methods weren't double counting, or undercounting.
 - When it came to distributing the types of candy a kid possessed, it brought to mind [partitions](https://en.wikipedia.org/wiki/Partition_(number_theory)), and I spent some time looking down that rabbit-hole. However these particular partitions required the condition that one kid own strictly the most of a given candy, and I couldn't find anything about filtering paritions in such a way. It ultimately didn't lend the tools that were the right fit for the problem.
 - When I first came up with the table representation, and saw how all the rows and columns had to add up to the same number I immediately thought of [Magic Squares](https://en.wikipedia.org/wiki/Magic_square), however these come with the restriction that each of the numbers in the square be unique. I also thought about [Sudoku puzzles](https://en.wikipedia.org/wiki/Sudoku) for a second, but again, it has the uniqueness of values constraint. If anything it's actually equivalent to perfectly square [Kakuro puzzles](https://en.wikipedia.org/wiki/Kakuro), however Kakuros are not squares as their solutions are meant to be unique, and so there there is nothing to be learned pursuing that route.
 - Following the table representation I also thought about [adjacency matrices](https://en.wikipedia.org/wiki/Adjacency_matrix) for [multi-graphs](https://en.wikipedia.org/wiki/Multigraph), and wondered if there was a nice mapping of vertex degree to candy distribution. Turns out there wasn't.
