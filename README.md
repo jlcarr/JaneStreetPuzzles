@@ -80,6 +80,7 @@ Let's also build the tables for this case:
    | candy 1 | 2     | 0     | =2  |
    | candy 2 | 0     | 2     | =2  |
    | sum     | =2    | =2    | =2  |  
+   
    It is valid, and appears 1 times in the list of shufflings
 3. Let's map the next shuffling in. It turns out the next 4 shufflings all correspond to the same table
    |         | kid 1 | kid 2 | sum |
@@ -87,6 +88,7 @@ Let's also build the tables for this case:
    | candy 1 | 1     | 1     | =2  |
    | candy 2 | 1     | 1     | =2  |
    | sum     | =2    | =2    | =2  |  
+   
    It is invalid, and appears 4 times in the list of shufflings
 4. Lastly let's do the final shuffle
    |         | kid 1 | kid 2 | sum |
@@ -94,6 +96,7 @@ Let's also build the tables for this case:
    | candy 1 | 0     | 2     | =2  |
    | candy 2 | 2     | 0     | =2  |
    | sum     | =2    | =2    | =2  |  
+   
    Is is valid, and appears 1 times in the list of shufflings
 
 ### Usefulness of the Table
