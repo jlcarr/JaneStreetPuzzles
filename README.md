@@ -167,3 +167,26 @@ This has been a fantastic puzzle to solve, it really made me dive deep into the 
 - When it came to distributing the types of candy a kid possessed, it brought to mind [partitions](https://en.wikipedia.org/wiki/Partition_(number_theory)), and I spent some time looking down that rabbit-hole. However these particular partitions required the condition that one kid own strictly the most of a given candy, and I couldn't find anything about filtering paritions in such a way. It ultimately didn't lend the tools that were the right fit for the problem.
 - When I first came up with the table representation, and saw how all the rows and columns had to add up to the same number I immediately thought of [Magic Squares](https://en.wikipedia.org/wiki/Magic_square), however these come with the restriction that each of the numbers in the square be unique. I also thought about [Sudoku puzzles](https://en.wikipedia.org/wiki/Sudoku) for a second, but again, it has the uniqueness of values constraint. If anything it's actually equivalent to perfectly square [Kakuro puzzles](https://en.wikipedia.org/wiki/Kakuro), however Kakuros are not squares as their solutions are meant to be unique, and so there there is nothing to be learned pursuing that route.
 - Following the table representation I also thought about [adjacency matrices](https://en.wikipedia.org/wiki/Adjacency_matrix) for [multi-graphs](https://en.wikipedia.org/wiki/Multigraph), and wondered if there was a nice mapping of vertex degree to candy distribution. Turns out there wasn't.
+
+
+## January 2021
+Another good puzzle, which had me searching for ways to optimize my solution algorithm. It was only after a few optimization steps that I was able to make the computation feasible. Let's take a look!
+Also, look for "JC" on the solution page!
+### Problem Statement
+https://www.janestreet.com/puzzles/figurine-figuring/  
+Jane received 78 figurines as gifts this holiday season:  12 drummers drumming, 11 pipers piping, 10 lords a-leaping, etc., down to 1 partridge in a pear tree.   They are all mixed together in a big bag.  She agrees with her friend Alex that this seems like too many figurines for one person to have, so she decides to give some of her figurines to Alex.   Jane will uniformly randomly pull figurines out of the bag one at a time until she pulls out the partridge in a pear tree, and will give Alex all of the figurines she pulled out of the bag (except the partridge, that’s Jane’s favorite).
+
+If n is the maximum number of any one type of ornament that Alex gets, what is the expected value of n, to seven significant figures?
+
+### Starting Off
+#### Problem Description and Toolset
+This problem is asking about *expected values*, resulting from a *discrete* and *random draws*, and inparticular is looking for an answer in *significant figures* as opposed to an exact answer. This implies we're going to need our **probability**, and we're going definitely going to needs some **floating-point computation**.
+- https://en.wikipedia.org/wiki/Expected_value
+- https://en.wikipedia.org/wiki/Probability
+- https://en.wikipedia.org/wiki/Floating-point_arithmetic
+
+#### Problem Size
+So first off, how states are there? Since there are a finite number of figurines to draw the number of states must be finite. Well, for the figurine with n copies, we can have between 0 and n drawn, inclusive, meaning that gives n+1 states for that one figurine. Each figurine is independent from eachother: therefore given N different figurines we have a total of (N+1)! states, for our problem N=12, giving 13!=6227020800.
+
+#### Computational Feasibility
+
