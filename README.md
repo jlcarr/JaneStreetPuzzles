@@ -171,7 +171,7 @@ This has been a fantastic puzzle to solve, it really made me dive deep into the 
 
 ## January 2021
 Another good puzzle, which had me searching for ways to optimize my solution algorithm. It was only after a few optimization steps that I was able to make the computation feasible. Let's take a look!
-Also, look for "JC" on the solution page!
+Also, look for "JC" on the [solution page](https://www.janestreet.com/puzzles/solutions/january-2021-solution/)!
 ### Problem Statement
 https://www.janestreet.com/puzzles/figurine-figuring/  
 Jane received 78 figurines as gifts this holiday season:  12 drummers drumming, 11 pipers piping, 10 lords a-leaping, etc., down to 1 partridge in a pear tree.   They are all mixed together in a big bag.  She agrees with her friend Alex that this seems like too many figurines for one person to have, so she decides to give some of her figurines to Alex.   Jane will uniformly randomly pull figurines out of the bag one at a time until she pulls out the partridge in a pear tree, and will give Alex all of the figurines she pulled out of the bag (except the partridge, that’s Jane’s favorite).
@@ -189,4 +189,27 @@ This problem is asking about *expected values*, resulting from a *discrete* and 
 So first off, how states are there? Since there are a finite number of figurines to draw the number of states must be finite. Well, for the figurine with n copies, we can have between 0 and n drawn, inclusive, meaning that gives n+1 states for that one figurine. Each figurine is independent from eachother: therefore given N different figurines we have a total of (N+1)! states, for our problem N=12, giving 13!=6227020800.
 
 #### Computational Feasibility
+Being on the order of 6 billion states, the problem is just barely in the realm of computational feasibility, and any lack in optimization can cause it to fall out. We'd need to use some fast programming languages with low memory overheads, where we can optimize aggressively: this calls for **C++**.
 
+Let's explore some estimates on the computational resources required to explore this problem as it stands in our current formulation:
+- The minimum number of bits required to represent a state would be: ![\left\lceil\log_2\left(13!\right)\right\rceil=33](https://render.githubusercontent.com/render/math?math=%5Cleft%5Clceil%5Clog_2%5Cleft%2813%21%5Cright%29%5Cright%5Crceil%3D33)
+- Therefore a 4-byte int would be just barely too small to represent the state. Therefore a 8-byte **long** is needed. Most modern computers are 64-bit architectures, so this isn't a problem.
+- A 4-byte float has approx 6 decimal places, which is too short for the requested probability precision, therefore 8-byte **doubles** will be required.
+- At 8 bytes needing to be stored for 6227020800 states, this gives a total of 49,816,166,400 bytes. About **50GB**. This is too large for the RAM of most personal computers today, however using the disk to store excess memory resources makes this computation just barely feasible, though slower for the memory management. This is also assuming no extra memory is required to maintain the datastructure.
+
+Trying to run this computation on my laptop caused it to crash, as expected. But perhaps we can optimize so as to use less storage?
+
+#### State Representation and Storage Optimizations
+As we just explored, 33 bits minimum are required to encode all the states, however, what does such an efficient encoding look like? The factorial in this computation give a hint to the very natural encoding: the [Factorial Number System](https://en.wikipedia.org/wiki/Factorial_number_system) in which every digit's place will represent a type of figurine and its value will represent the number of copies of that figurine remaining in Jane's bag.  
+
+What's even better about this encoding is it is an [enumeration](https://en.wikipedia.org/wiki/Enumeration) of all the possible state, a natural ordering in fact, in which for every state's numerical value must be strictly lower than all states with a greater number of figurines.  
+Written mathematically:
+
+![\forall s_{1},s_{2} \in S \quad \left|s_{1}\right|<\left|s_{2}\right| \implies E\left(s_{1}\right)<E\left(s_{2}\right)](https://render.githubusercontent.com/render/math?math=%5Cforall%20s_%7B1%7D%2Cs_%7B2%7D%20%5Cin%20S%20%5Cquad%20%5Cleft%7Cs_%7B1%7D%5Cright%7C%3C%5Cleft%7Cs_%7B2%7D%5Cright%7C%20%5Cimplies%20E%5Cleft%28s_%7B1%7D%5Cright%29%3CE%5Cleft%28s_%7B2%7D%5Cright%29)  
+
+Where:  
+- ![S](https://render.githubusercontent.com/render/math?math=S) is the universal set of possible states
+- ![E(s)](https://render.githubusercontent.com/render/math?math=E%28s%29) is the function mapping states to enumerated numbers by the factorial number system described above.
+- ![|s|](https://render.githubusercontent.com/render/math?math=%7Cs%7C) is the cardinality of the state's multiset. I.e. how many figurines are left in the bag.
+
+This unlocks a key optimization: because at every step we remove a figurine the above statement implies at every step the numerical value strictly decreases. Furthermore (and easier to see) when performing a breadth-first traversal of the states the search queue will strictly contain states with figurines equal to or one less than in the current search state, with any of lower value deeper in the queue. Therefore the number of states required to be kept in memory at a time is at most:
