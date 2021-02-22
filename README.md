@@ -199,7 +199,8 @@ Let's explore some estimates on the computational resources required to explore 
 
 Trying to run this computation on my laptop caused it to crash, as expected. But perhaps we can optimize so as to use less storage?
 
-#### State Representation and Storage Optimizations
+### Representation and Optimizations
+#### State Representation
 As we just explored, 33 bits minimum are required to encode all the states, however, what does such an efficient encoding look like? The factorial in this computation give a hint to the very natural encoding: the [Factorial Number System](https://en.wikipedia.org/wiki/Factorial_number_system) in which every digit's place will represent a type of figurine and its value will represent the number of copies of that figurine remaining in Jane's bag.  
 
 What's even better about this encoding is it is an [enumeration](https://en.wikipedia.org/wiki/Enumeration) of all the possible state, a natural ordering in fact, in which for every state's numerical value must be strictly lower than all states with a greater number of figurines.  
@@ -212,4 +213,26 @@ Where:
 - ![E(s)](https://render.githubusercontent.com/render/math?math=E%28s%29) is the function mapping states to enumerated numbers by the factorial number system described above.
 - ![|s|](https://render.githubusercontent.com/render/math?math=%7Cs%7C) is the cardinality of the state's multiset. I.e. how many figurines are left in the bag.
 
-This unlocks a key optimization: because at every step we remove a figurine the above statement implies at every step the numerical value strictly decreases. Furthermore (and easier to see) when performing a breadth-first traversal of the states the search queue will strictly contain states with figurines equal to or one less than in the current search state, with any of lower value deeper in the queue. Therefore the number of states required to be kept in memory at a time is at most:
+#### Storage Optimization
+This unlocks a key optimization: because at every step we remove a figurine the above statement implies at every step the numerical value strictly decreases. Furthermore (and easier to see) when performing a breadth-first traversal of the states the search queue will strictly contain states with figurines equal to or one less than in the current search state, with any of lower value deeper in the queue. Therefore the number of states required to be kept in memory at a time is at most:  
+
+![\max_{n}|\{s \mid |s|=n\lor|s|=n+1\}|](https://render.githubusercontent.com/render/math?math=%5Cmax_%7Bn%7D%7C%5C%7Bs%20%5Cmid%20%7Cs%7C%3Dn%5Clor%7Cs%7C%3Dn%2B1%5C%7D%7C)
+
+For our problem this evaluates to 296643390 (see 2021_jan_step_progess.py for more details). This is approximately 1/30th the original problem size, now easily putting the problem into the range of computational feasibility for modern computers. We are now ready to perform our final solution.
+
+Furthermore, we don't need to store "end-states", i.e. those of even numberical value, i.e. those without the partridge in a pair tree. This is because we can simply add all probability we would have added to this state to the final result, with the max-figurine count in order to compute the expected value. This accounts for exactly half the states, further cutting down the amount of memory needed.
+
+### Putting It All Together
+The algorithm can be summarized as follows:
+1. Start with the initial state of all figurines in the bag (the maximum numerical value state) addd to the search queue.
+2. Pop the next state from the search queue.
+3. Find all child states of the current state (at most 12).
+4. Add all child states to the search queue if they are not already there.
+5. Add the probability of being in the current state with the probability of transitioning to one of the child states to that child-state's accumulated probability.
+6. Delete the current state from the cached state probabilities.
+7. Any terminal states should not be cached but rather directly added to the expected value computation
+8. Continue search until no states are left and the final result of the expected value in complete.
+
+The code given can take over an hour to run, and several GB or RAM, but produces a final answer of:  
+**6.859787**  
+Tah dah!!
